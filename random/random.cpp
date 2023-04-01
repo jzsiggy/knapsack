@@ -24,6 +24,9 @@ bool check_can_watch(const Movie& movie, const bitset<24>& hours, const vector<i
 }
 
 int main() {
+    // Start the timer
+    auto startTime = chrono::steady_clock::now();
+    
     srand((unsigned) time(NULL));
     int num_movies, num_categories;
     cin >> num_movies >> num_categories;
@@ -103,7 +106,13 @@ int main() {
     }
 
     // Output the number of watched movies
-    // cout << watched.size() << endl;
+    cout << "\nNúmero de filmes: " << watched_movies.size() << endl;
+
+    // Calculate the time elapsed during algorithm execution
+    auto endTime = chrono::steady_clock::now();
+    double duration = chrono::duration_cast<chrono::microseconds>(endTime - startTime).count();
+
+    cout << "Time elapsed during the stochastic greedy algorithm: " << duration << " microseconds" << endl;
 
     return 0;
 }

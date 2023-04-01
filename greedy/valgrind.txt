@@ -1,0 +1,85 @@
+-- line 7 ----------------------------------------
+     .
+     .           // Define a struct to represent a movie
+     .           struct Movie {
+     .               int start_time;
+     .               int end_time;
+     .               int category;
+     .           };
+     .
+    11 ( 0.00%)  int main() {
+     .               int num_movies, num_categories;
+     6 ( 0.00%)      cin >> num_movies >> num_categories;
+ 8,589 ( 0.14%)  => ???:0x0000000000109150 (2x)
+     .
+     .               // Read the category limits into a vector
+     3 ( 0.00%)      vector<int> category_limit(num_categories + 1);
+    45 ( 0.00%)      for (int i = 1; i <= num_categories; i++) {
+    32 ( 0.00%)          cin >> category_limit[i];
+10,442 ( 0.18%)  => ???:0x0000000000109150 (10x)
+     .               }
+     .
+     .               // Read the movie information into a vector
+     1 ( 0.00%)      vector<Movie> movies(num_movies);
+ 4,006 ( 0.07%)      for (int i = 0; i < num_movies; i++) {
+ 9,002 ( 0.15%)          cin >> movies[i].start_time >> movies[i].end_time >> movies[i].category;
+3,292,381 (55.46%)  => ???:0x0000000000109150 (3,000x)
+ 3,000 ( 0.05%)          if (movies[i].end_time < movies[i].start_time) {
+   135 ( 0.00%)              movies[i].end_time = 24;
+     .                   }
+     .               }
+     .
+     .               // Sort the movies by end time
+     .               sort(movies.begin(), movies.end(), [](const Movie& a, const Movie& b) {
+24,984 ( 0.42%)          if (a.end_time == b.end_time) { return a.start_time < b.start_time; }
+19,774 ( 0.33%)          return a.end_time < b.end_time;
+     .               });
+     .
+     .               // // Sort the movies by start time
+     .               // sort(movies.begin(), movies.end(), [](const Movie& a, const Movie& b) {
+     .               //     return a.start_time < b.start_time;
+     .               // });
+     .
+     .               // Define a bitset to represent the availability of each hour of the day
+     1 ( 0.00%)      bitset<24> hours;
+     .
+     .               // Keep track of how many movies of each category have been watched
+     3 ( 0.00%)      vector<int> num_watched(num_categories + 1, 0);
+     .
+     .               // Keep track of the indices of the watched movies
+     .               vector<int> watched;
+     .
+     .               // Iterate over the movies and check if each movie can be watched
+ 4,007 ( 0.07%)      for (int i = 0; i < num_movies; i++) {
+ 1,000 ( 0.02%)          const Movie& movie = movies[i];
+     .
+     .                   // Check if any hour of the movie overlaps with an already watched movie
+     .                   bool can_watch = true;
+ 7,075 ( 0.12%)          for (int hour = movie.start_time; hour < movie.end_time; hour++) {
+ 2,963 ( 0.05%)              if (hours[hour]) {
+     .                           can_watch = false;
+     .                           break;
+     .                       }
+     .                   }
+    25 ( 0.00%)          if (hours[movie.start_time]) { can_watch = false; }
+     .
+     .                   // If the movie can be watched and its category limit has not been reached,
+     .                   // mark the hours as watched, add the movie to the list of watched movies,
+     .                   // and print the start time, end time, and category of the movie
+   108 ( 0.00%)          if (can_watch && num_watched[movie.category] < category_limit[movie.category]) {
+    40 ( 0.00%)              num_watched[movie.category]++;
+     .                       watched.push_back(i);
+    20 ( 0.00%)              hours[movie.start_time] = true;
+   137 ( 0.00%)              for (int hour = movie.start_time; hour < movie.end_time; hour++) {
+     .                           hours[hour] = true;
+     .                       }
+   180 ( 0.00%)              cout << movie.start_time << " " << movie.end_time << " " << movie.category << endl;
+31,724 ( 0.53%)  => ???:0x00000000001091e0 (60x)
+     .                   }
+     .               }
+     .
+     .               // Output the number of watched movies
+     .               // cout << watched.size() << endl;
+     .
+     .               return 0;
+    15 ( 0.00%)  }

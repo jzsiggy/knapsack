@@ -1,0 +1,14 @@
+20 23 12
+0 0 1
+5 6 14
+11 16 4
+1 1 5
+6 11 17
+2 4 12
+18 20 23
+23 24 5
+16 18 9
+4 5 1
+
+Número de filmes: 10011
+Time elapsed during the stochastic greedy algorithm: 43657 microseconds

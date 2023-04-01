@@ -83,13 +83,13 @@ int main() {
     }
 
     // Output the number of watched movies
-    cout << "Número de filmes: " << watched.size() << endl;
+    cout << "\nNúmero de filmes: " << watched.size() << endl;
 
     // Calculate the time elapsed during algorithm execution
     auto endTime = chrono::steady_clock::now();
     double duration = chrono::duration_cast<chrono::microseconds>(endTime - startTime).count();
 
-    cout << "Time elapsed during the aleatory algorithm: " << duration << " microseconds" << endl;
+    cout << "Time elapsed during the greedy algorithm: " << duration << " microseconds" << endl;
 
     return 0;
 }

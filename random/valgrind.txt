@@ -1,0 +1,115 @@
+-- line 8 ----------------------------------------
+     .           // Define a struct to represent a movie
+     .           struct Movie {
+     .               int start_time;
+     .               int end_time;
+     .               int category;
+     .           };
+     .
+     .           bool check_can_watch(const Movie& movie, const bitset<24>& hours, const vector<int>& num_watched, const vector<int>& category_limit) {
+ 4,121 ( 0.05%)      if (num_watched[movie.category] >= category_limit[movie.category]) { return false; }
+ 7,200 ( 0.09%)      for (int hour = movie.start_time; hour < movie.end_time; hour++) {
+ 1,756 ( 0.02%)          if (hours[hour]) {
+     .                       return false;
+     .                   }
+     .               }
+    16 ( 0.00%)      if (hours[movie.start_time]) { return false; }
+     .               return true;
+     .           }
+     .
+    11 ( 0.00%)  int main() {
+     4 ( 0.00%)      srand((unsigned) time(NULL));
+ 6,817 ( 0.08%)  => ???:0x0000000000109220 (1x)
+     8 ( 0.00%)  => ???:0x0000000000109200 (1x)
+     .               int num_movies, num_categories;
+     6 ( 0.00%)      cin >> num_movies >> num_categories;
+ 8,589 ( 0.10%)  => ???:0x00000000001091c0 (2x)
+     .
+     .               // Read the category limits into a vector
+     3 ( 0.00%)      vector<int> category_limit(num_categories + 1);
+    45 ( 0.00%)      for (int i = 1; i <= num_categories; i++) {
+    32 ( 0.00%)          cin >> category_limit[i];
+10,442 ( 0.13%)  => ???:0x00000000001091c0 (10x)
+     .               }
+     .
+     .               // Read the movie information into a vector
+     6 ( 0.00%)      vector<Movie> unwatched_movies(num_movies);
+ 1,750 ( 0.02%)  => /usr/include/c++/9/bits/stl_vector.h:std::vector<Movie, std::allocator<Movie> >::vector(unsigned long, std::allocator<Movie> const&) (1x)
+ 4,006 ( 0.05%)      for (int i = 0; i < num_movies; i++) {
+ 9,002 ( 0.11%)          cin >> unwatched_movies[i].start_time >> unwatched_movies[i].end_time >> unwatched_movies[i].category;
+3,292,381 (40.23%)  => ???:0x00000000001091c0 (3,000x)
+ 4,000 ( 0.05%)          if (unwatched_movies[i].end_time < unwatched_movies[i].start_time) {
+   135 ( 0.00%)              unwatched_movies[i].end_time = 24;
+     .                   }
+     .               }
+     .
+     7 ( 0.00%)      vector<Movie> watched_movies(num_movies);
+ 1,750 ( 0.02%)  => /usr/include/c++/9/bits/stl_vector.h:std::vector<Movie, std::allocator<Movie> >::vector(unsigned long, std::allocator<Movie> const&) (1x)
+     6 ( 0.00%)      vector<Movie> lost_movies(num_movies);
+ 1,750 ( 0.02%)  => /usr/include/c++/9/bits/stl_vector.h:std::vector<Movie, std::allocator<Movie> >::vector(unsigned long, std::allocator<Movie> const&) (1x)
+     .
+     .               // Sort the movies by end time
+     .               sort(unwatched_movies.begin(), unwatched_movies.end(), [](const Movie& a, const Movie& b) {
+24,984 ( 0.31%)          if (a.end_time == b.end_time) { return a.start_time < b.start_time; }
+19,774 ( 0.24%)          return a.end_time < b.end_time;
+     .               });
+     .
+     .               // Define a bitset to represent the availability of each hour of the day
+     2 ( 0.00%)      bitset<24> hours;
+     .
+     .               // Keep track of how many movies of each category have been watched
+     3 ( 0.00%)      vector<int> num_watched(num_categories + 1, 0);
+     .
+     .               // Keep track of the indices of the watched movies
+     .               vector<int> watched;
+     .
+     .               // Iterate over the movies and check if each movie can be watched
+    79 ( 0.00%)      while (!unwatched_movies.empty()) {
+     .                   bool end = false;
+     .                   Movie movie;
+     .                   int index;
+    39 ( 0.00%)          int random_num = rand() % 4;
+ 2,406 ( 0.03%)  => ???:0x0000000000109190 (39x)
+    78 ( 0.00%)          if (random_num != 0) {
+    26 ( 0.00%)              index = 0;
+   130 ( 0.00%)              movie = unwatched_movies.front();
+     .                   } else {
+    91 ( 0.00%)              index = rand() % unwatched_movies.size();
+   806 ( 0.01%)  => ???:0x0000000000109190 (13x)
+   104 ( 0.00%)              movie = unwatched_movies[index];
+     .
+   961 ( 0.01%)              while(!check_can_watch(movie, hours, num_watched, category_limit)) {
+     .                           lost_movies.push_back(movie);
+     .                           unwatched_movies.erase(unwatched_movies.begin() + index);
+     .
+ 1,925 ( 0.02%)                  if (unwatched_movies.empty()) { end = true; break; }
+     .
+ 5,766 ( 0.07%)                  index = rand() % unwatched_movies.size();
+59,466 ( 0.73%)  => ???:0x0000000000109190 (961x)
+ 6,727 ( 0.08%)                  movie = unwatched_movies[index];
+     .                       }
+     .                   }
+     .
+     .                   if (end) { break; }
+     .
+     .                   if (check_can_watch(movie, hours, num_watched, category_limit)) {
+     .                       hours[movie.start_time] = true;
+    92 ( 0.00%)              for (int hour = movie.start_time; hour < movie.end_time; hour++) {
+     .                           hours[hour] = true;
+     .                       }
+    28 ( 0.00%)              num_watched[movie.category]++;
+     .                       watched_movies.push_back(movie);
+     .                       unwatched_movies.erase(unwatched_movies.begin()+index);
+   168 ( 0.00%)              cout << movie.start_time << " " << movie.end_time << " " << movie.category << endl;
+24,477 ( 0.30%)  => ???:0x00000000001092a0 (42x)
+     .                   } else {
+     .                       lost_movies.push_back(movie);
+     .                       unwatched_movies.erase(unwatched_movies.begin() + index);
+     .                   }
+     .               }
+     .
+     .               // Output the number of watched movies
+     .               // cout << watched.size() << endl;
+     .
+     .               return 0;
+    15 ( 0.00%)  }
