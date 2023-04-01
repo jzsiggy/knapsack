@@ -12,6 +12,9 @@ struct Movie {
 };
 
 int main() {
+    // Start the timer
+    auto startTime = chrono::steady_clock::now();
+
     int num_movies, num_categories;
     cin >> num_movies >> num_categories;
 
@@ -79,7 +82,13 @@ int main() {
     }
 
     // Output the number of watched movies
-    // cout << watched.size() << endl;
+    cout << "Número de filmes: " << watched.size() << endl;
+
+    // Calculate the time elapsed during algorithm execution
+    auto endTime = chrono::steady_clock::now();
+    double duration = chrono::duration_cast<chrono::microseconds>(endTime - startTime).count();
+
+    cout << "Time elapsed during the aleatory algorithm: " << duration << " microseconds" << endl;
 
     return 0;
 }
