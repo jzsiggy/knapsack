@@ -32,6 +32,10 @@ int main() {
         if (movies[i].end_time < movies[i].start_time) {
             movies[i].end_time = 24;
         }
+        
+        if (movies[i].end_time == movies[i].start_time) {
+            movies[i].end_time += 1;
+        }
     }
 
     // Sort the movies by end time
@@ -54,6 +58,8 @@ int main() {
     // Keep track of the indices of the watched movies
     vector<int> watched;
 
+    int time_watched = 0;
+
     // Iterate over the movies and check if each movie can be watched
     for (int i = 0; i < num_movies; i++) {
         const Movie& movie = movies[i];
@@ -73,6 +79,7 @@ int main() {
         // and print the start time, end time, and category of the movie
         if (can_watch && num_watched[movie.category] < category_limit[movie.category]) {
             num_watched[movie.category]++;
+            time_watched += movie.end_time - movie.start_time;
             watched.push_back(i);
             hours[movie.start_time] = true;
             for (int hour = movie.start_time; hour < movie.end_time; hour++) {
@@ -84,12 +91,15 @@ int main() {
 
     // Output the number of watched movies
     cout << "\nNúmero de filmes: " << watched.size() << endl;
+    cout << "Tempo de tela (em horas): " << time_watched << endl;
 
     // Calculate the time elapsed during algorithm execution
     auto endTime = chrono::steady_clock::now();
     double duration = chrono::duration_cast<chrono::microseconds>(endTime - startTime).count();
 
-    cout << "Time elapsed during the greedy algorithm: " << duration << " microseconds" << endl;
+    cout << fixed;
+    cout << "Time elapsed during the greedy algorithm (in microseconds): " << duration << endl;
+    cout << scientific;
 
     return 0;
 }

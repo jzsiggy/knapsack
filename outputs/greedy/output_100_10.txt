@@ -10,4 +10,5 @@
 21 24 8
 
 Número de filmes: 10
-Time elapsed during the greedy algorithm: 795 microseconds
+Tempo de tela (em horas): 24
+Time elapsed during the greedy algorithm (in microseconds): 904.000000

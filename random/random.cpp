@@ -44,10 +44,14 @@ int main() {
         if (unwatched_movies[i].end_time < unwatched_movies[i].start_time) {
             unwatched_movies[i].end_time = 24;
         }
+
+        if (unwatched_movies[i].end_time == unwatched_movies[i].start_time) {
+            unwatched_movies[i].end_time += 1;
+        }
     }
 
-    vector<Movie> watched_movies(num_movies);
-    vector<Movie> lost_movies(num_movies);
+    vector<Movie> watched_movies;
+    vector<Movie> lost_movies;
 
     // Sort the movies by end time
     sort(unwatched_movies.begin(), unwatched_movies.end(), [](const Movie& a, const Movie& b) {
@@ -61,8 +65,7 @@ int main() {
     // Keep track of how many movies of each category have been watched
     vector<int> num_watched(num_categories + 1, 0);
 
-    // Keep track of the indices of the watched movies
-    vector<int> watched;
+    int time_watched = 0;
 
     // Iterate over the movies and check if each movie can be watched
     while (!unwatched_movies.empty()) {
@@ -96,6 +99,7 @@ int main() {
                 hours[hour] = true;
             }
             num_watched[movie.category]++;
+            time_watched += movie.end_time - movie.start_time;
             watched_movies.push_back(movie);
             unwatched_movies.erase(unwatched_movies.begin()+index);
             cout << movie.start_time << " " << movie.end_time << " " << movie.category << endl;
@@ -107,12 +111,15 @@ int main() {
 
     // Output the number of watched movies
     cout << "\nNúmero de filmes: " << watched_movies.size() << endl;
+    cout << "Tempo de tela (em horas): " << time_watched << endl;
 
     // Calculate the time elapsed during algorithm execution
     auto endTime = chrono::steady_clock::now();
     double duration = chrono::duration_cast<chrono::microseconds>(endTime - startTime).count();
 
-    cout << "Time elapsed during the stochastic greedy algorithm: " << duration << " microseconds" << endl;
+    cout << fixed;
+    cout << "Time elapsed during the stochastic greedy algorithm (in microseconds): " << duration << endl;
+    cout << scientific;
 
     return 0;
 }
