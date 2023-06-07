@@ -1,68 +1,134 @@
-#include <iostream>
-#include <chrono>
+// Include the necessary libraries
+#include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
+#include <thrust/functional.h>
+#include <thrust/transform.h>
+#include <thrust/fill.h>
+#include <thrust/copy.h>
+#include <iostream>
+#include <cassert>
+#include <random>
+#include <chrono>
+#include <math.h>
 
-int main() {
-    auto startTime = std::chrono::steady_clock::now();
+using namespace std;
 
-    int num_movies, num_categories;
-    std::cin >> num_movies >> num_categories;
+// Define a Movie struct which contains start, end, and category of a movie
+struct Movie {
+  int start;
+  int end;
+  int category;
+};
 
-    std::vector<int> h_start_times(num_movies);
-    std::vector<int> h_end_times(num_movies);
-    std::vector<int> h_categories(num_movies);
-    std::vector<int> h_L(num_categories);
+// Define a struct that applies the schedule calculation logic on each combination
+struct ScheduleFunctor {
+  int movieCount;  // Number of movies
+  int categoryCount;  // Number of categories
+  int *categoryLimits;  // Limits for each category
+  Movie *movies;  // List of movies
 
-    for (int i = 0; i < num_movies; i++) {
-        std::cin >> h_start_times[i] >> h_end_times[i] >> h_categories[i];
-        if (h_end_times[i] < h_start_times[i]) {
-            h_end_times[i] = 24;
+  // ScheduleFunctor constructor
+  ScheduleFunctor(int movieCount, Movie *movies, int categoryCount, int *categoryLimits)
+      : movieCount(movieCount), movies(movies), categoryCount(categoryCount), categoryLimits(categoryLimits) {}
+
+  // Functor function that calculates the number of movies that can be scheduled for a given combination
+  __device__ __host__
+  int operator()(int combination) {
+    bool timeSlots[24] = {false};  // Available time slots
+
+    // Copy the category limits to a local array
+    int localCategoryLimits[20];
+    for (int i = 0; i <= categoryCount; i++) {
+      localCategoryLimits[i] = categoryLimits[i];
+    }
+
+    int scheduledMovies = 0;  // Counter for scheduled movies
+    for (int i = 0; i < movieCount; i++) {
+      if (combination & (1 << i)) {  // Check if the i-th movie is included in the combination
+        Movie& currentMovie = movies[i];
+
+        // Check if time slots for the movie's duration are occupied
+        for (int j = currentMovie.start; j < currentMovie.end; j++) {
+          if (timeSlots[j]) return -1;  // If a time slot is occupied, return -1
+          timeSlots[j] = true;  // Mark time slot as occupied
         }
-        if (h_end_times[i] == h_start_times[i]) {
-            h_end_times[i] += 1;
-        }
-        h_categories[i]--;  // convert categories to 0-based index
+        // If category limit is reached, return -1
+        if (localCategoryLimits[currentMovie.category] == 0) return -1;
+        localCategoryLimits[currentMovie.category]--;  // Decrease the limit for the movie's category
+        scheduledMovies++;
+      }
+    }
+    return scheduledMovies;
+  }
+};
+
+// Main function
+int main(int argc, char *argv[]) {
+  // Get number of movies and categories from the user
+  int num_movies, num_categories;
+  cin >> num_movies >> num_categories;
+
+  // Get the limit for each category
+  vector<int> category_limit(num_categories + 1);
+  for (int i = 1; i <= num_categories; i++) {
+    cin >> category_limit[i];
+  }
+
+  // Get the movie details
+  vector<Movie> movies(num_movies);
+  for (int i = 0; i < num_movies; i++) {
+    cin >> movies[i].start >> movies[i].end >> movies[i].category;
+    if (movies[i].end < movies[i].start) {
+      movies[i].end = 24;
     }
 
-    for (int i = 0; i < num_categories; i++) {
-        std::cin >> h_L[i];
+    if (movies[i].end == movies[i].start) {
+      movies[i].end += 1;
     }
+  }
 
-    // Copy host vectors to device
-    thrust::device_vector<int> start_times = h_start_times;
-    thrust::device_vector<int> end_times = h_end_times;
-    thrust::device_vector<int> categories = h_categories;
-    thrust::device_vector<int> L = h_L;
+  // Start the timer
+  auto startTime = chrono::steady_clock::now();
+  
+  // Move data to GPU
+  int *category_limit_gpu;
+  Movie *movies_gpu;
+  cudaMalloc(&category_limit_gpu, category_limit.size() * sizeof(int));
+  cudaMalloc(&movies_gpu, movies.size() * sizeof(Movie));
+  cudaMemcpy(category_limit_gpu, category_limit.data(), category_limit.size() * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(movies_gpu, movies.data(), movies.size() * sizeof(Movie), cudaMemcpyHostToDevice);
+  
+  thrust::device_vector<int> movie_counts(pow(2, movies.size()));
+  thrust::counting_iterator<int> combinations(0);
 
-    thrust::device_vector<int> dp((num_movies+1) * (num_categories+1), 0);
+  ScheduleFunctor functor(
+    movies.size(), 
+    movies_gpu, 
+    num_categories, 
+    category_limit_gpu
+  );
 
-    for (int i = 1; i <= num_movies; i++) {
-        for (int j = 1; j <= num_categories; j++) {
-            int max_count = 0;
-            for (int k = 0; k < i; k++) {
-                if (categories[k] == j-1 && end_times[k] <= start_times[i-1] && dp[k * (num_categories+1) + j-1] + 1 <= L[j-1]) {
-                    max_count = std::max(max_count, (int)dp[k * (num_categories+1) + j-1] + 1);
-                } else {
-                    max_count = std::max(max_count, (int)dp[k * (num_categories+1) + j]);
-                }
-            }
-            dp[i * (num_categories+1) + j] = max_count;
-        }
-    }
+  // Apply Functor to each element in the vector
+  thrust::transform(combinations, combinations + pow(2, movies.size()), movie_counts.begin(), functor);
 
-    int max_count = 0;
-    for (int j = 1; j <= num_categories; j++) {
-        max_count = std::max(max_count, (int)dp[num_movies * (num_categories+1) + j]);
-    }
+  // Find the maximum number of movies
+//   int max_movies = thrust::reduce(movie_counts.begin(), movie_counts.end(), thrust::maximum<int>())
+  int max_movies = *thrust::max_element(movie_counts.begin(), movie_counts.end());
 
-    std::cout << "\nNúmero de filmes: " << max_count << "\n";
+  // Print the result
+  cout << "\nNúmero de filmes: " << max_movies << "\n";
+  
+  // Stop the timer and calculate the elapsed time
+  auto endTime = chrono::steady_clock::now();
+  double duration = chrono::duration_cast<chrono::microseconds>(endTime - startTime).count();
 
-    auto endTime = std::chrono::steady_clock::now();
-    double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+  // Print the elapsed time
+  cout << fixed;
+  cout << "Time elapsed during the brute-force algorithm (in microseconds): " << duration << endl;
+  cout << scientific;
 
-    std::cout << std::fixed;
-    std::cout << "Time elapsed during the brute-force algorithm (in microseconds): " << duration << std::endl;
-    std::cout << std::scientific;
+  cudaFree(category_limit_gpu);
+  cudaFree(movies_gpu);
 
-    return 0;
+  return 0;
 }

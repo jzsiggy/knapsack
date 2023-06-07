@@ -2,6 +2,8 @@
 #include <vector>
 #include <algorithm>
 #include <omp.h>
+#include <chrono>
+
 using namespace std;
 
 struct Movie {
