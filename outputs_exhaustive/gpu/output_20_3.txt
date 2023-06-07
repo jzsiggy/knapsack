@@ -1,0 +1,3 @@
+
+Número de filmes: 7
+Time elapsed during the brute-force algorithm (in microseconds): 127824.000000

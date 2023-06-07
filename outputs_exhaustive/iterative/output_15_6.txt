@@ -1,0 +1,10 @@
+4 7 6
+16 19 3
+13 15 1
+2 4 2
+7 9 1
+20 22 6
+9 11 2
+
+Número de filmes: 7
+Time elapsed during the greedy algorithm (in microseconds): 69706.000000
