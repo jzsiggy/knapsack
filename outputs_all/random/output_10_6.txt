@@ -1,0 +1,10 @@
+13 17 6
+0 2 5
+2 5 2
+7 11 5
+18 21 3
+21 24 4
+Tempo de tela (em horas): 19
+
+Número de filmes: 6
+Time elapsed during the stochastic greedy algorithm (in microseconds): 75.000000
